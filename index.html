@@ -703,8 +703,7 @@ function setBar(bId, cId, pct, label) {
 
 /* ──────────────── RAWG API (via Cloudflare Worker proxy) ──────────────── */
 // !! REPLACE THIS with your Cloudflare Worker URL after deploying it !!
-const PROXY_URL = 'https://levelup-proxy.avcems27.workers.dev';
-
+const PROXY_URL = 'https://levelup-proxy.viratmalviya64.workers.dev';
 async function rawg(endpoint, params = {}) {
   const url = new URL(PROXY_URL);
   url.searchParams.set('path', endpoint);
