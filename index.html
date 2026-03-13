@@ -507,6 +507,12 @@ footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center;
 @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width:900px) { .hero-wrap { grid-template-columns: 1fr; } .top-strip { display: none; } }
 @media (max-width:600px) { .games-grid { grid-template-columns: repeat(auto-fill,minmax(155px,1fr)); } .nav-links { display: none; } .modal-stats { grid-template-columns: 1fr 1fr; } }
+
+/* ESRB */
+.esrb-badge { width: 28px; height: 28px; object-fit: contain; display: block; }
+.esrb-txt   { font-family: 'Space Mono', monospace; font-size: 0.44rem; color: var(--mut2); }
+.card-esrb  { position: absolute; bottom: 2.2rem; right: 0.52rem; }
+
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -614,7 +620,7 @@ footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center;
 <!-- FOOTER -->
 <footer>
   <div class="foot-logo">LEVELUP</div>
-  <div class="foot-txt">POWERED BY RAWG · DATA FROM METACRITIC · IGN · GAMESPOT · OPENCRITIC · EUROGAMER · DESTRUCTOID · PC GAMER · POLYGON · GIANT BOMB · EASY ALLIES</div>
+  <div class="foot-txt">POWERED BY RAWG.IO · CRITIC SCORES FROM METACRITIC · USER RATINGS FROM RAWG COMMUNITY</div>
   <div class="foot-note">© 2025 LevelUp · 500,000+ games · Scores from RAWG.io</div>
 </footer>
 
@@ -651,6 +657,28 @@ footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center;
 
 <div class="toast" id="toast"></div>
 
+      <p style="font-size:0.8rem;color:var(--mut2);line-height:1.7;margin:0.75rem 0 0;">LevelUp fetches live game data from <strong style="color:var(--txt)">RAWG.io</strong>.<br>A free API key is required to load games.</p>
+    </div>
+    <div style="padding:1.5rem 2rem 2rem;">
+      <div style="background:var(--surf);border:1px solid var(--border2);border-radius:10px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--a3);margin-bottom:0.75rem;">HOW TO GET YOUR FREE KEY</div>
+        <div style="font-size:0.78rem;color:var(--mut2);line-height:1.9;">
+          1. Visit <a href="https://rawg.io/apidocs" target="_blank" style="color:var(--a);text-decoration:none;">rawg.io/apidocs</a><br>
+          2. Sign up for a free account<br>
+          3. Copy your API key and paste it below
+        </div>
+      </div>
+      <input type="text" id="keyInput" placeholder="Paste your RAWG API key here…"
+        style="width:100%;background:var(--surf);border:1px solid var(--border2);border-radius:10px;padding:0.65rem 1rem;color:var(--txt);font-family:'Space Mono',monospace;font-size:0.75rem;outline:none;margin-bottom:0.75rem;transition:border-color 0.2s,box-shadow 0.2s;"
+        onfocus="this.style.borderColor='var(--a)';this.style.boxShadow='0 0 0 3px rgba(0,229,255,0.08)'"
+        onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'"
+        onkeydown="if(event.key==='Enter')submitKey()">
+      <div id="keyErr" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--a2);margin-bottom:0.75rem;min-height:1rem;text-align:center;"></div>
+      <button onclick="submitKey()" style="width:100%;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:3px;padding:0.75rem;background:linear-gradient(135deg,var(--a3),var(--a));border:none;border-radius:8px;color:white;cursor:pointer;transition:filter 0.2s,transform 0.2s;" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter='brightness(1)'">LAUNCH LEVELUP →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ─────────────────────────────────────────
    !! REPLACE THIS WITH YOUR RAWG KEY !!
@@ -685,6 +713,20 @@ const scC = s => !s ? '#40406a' : s >= 90 ? '#00c96a' : s >= 75 ? '#78d900' : s 
 const scL = s => !s ? 'N/A'    : s >= 90 ? 'GREAT'  : s >= 75 ? 'GOOD'   : s >= 60 ? 'MIXED'  : 'POOR';
 const platShort = n => ({'PlayStation 5':'PS5','PlayStation 4':'PS4','Xbox One':'XB1','Xbox Series S/X':'XSX','PC':'PC','Nintendo Switch':'NSW','iOS':'iOS','Android':'AND','macOS':'MAC','Linux':'LNX','PlayStation 3':'PS3','Xbox 360':'X360'}[n] || n.slice(0,4).toUpperCase());
 const stars = r => [1,2,3,4,5].map(i=>`<span class="star${i<=Math.round(r)?' on':''}">★</span>`).join('');
+
+/* ──────────────── ESRB ──────────────── */
+const ESRB_IMG = {
+  'Everyone':       'https://www.esrb.org/wp-content/uploads/2019/05/E.svg',
+  'Everyone 10+':   'https://www.esrb.org/wp-content/uploads/2019/05/E10.svg',
+  'Teen':           'https://www.esrb.org/wp-content/uploads/2019/05/T.svg',
+  'Mature':         'https://www.esrb.org/wp-content/uploads/2019/05/M.svg',
+  'Adults Only':    'https://www.esrb.org/wp-content/uploads/2019/05/AO.svg',
+  'Rating Pending': 'https://www.esrb.org/wp-content/uploads/2019/05/RP.svg',
+};
+const esrbImg = name => ESRB_IMG[name]
+  ? `<img src="${ESRB_IMG[name]}" class="esrb-badge" alt="${name}" title="${name}">`
+  : `<span class="esrb-txt">${name}</span>`;
+
 function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
 function animCounter(el, from, to, dur) {
   if (!el || !to) return;
@@ -701,9 +743,7 @@ function setBar(bId, cId, pct, label) {
   if (c) c.textContent = label;
 }
 
-/* ──────────────── RAWG API (via Cloudflare Worker proxy) ──────────────── */
-// !! REPLACE THIS with your Cloudflare Worker URL after deploying it !!
-const PROXY_URL = 'https://levelup-proxy.viratmalviya64.workers.dev';
+/* ──────────────── RAWG API ──────────────── */
 async function rawg(endpoint, params = {}) {
   const url = new URL(PROXY_URL);
   url.searchParams.set('path', endpoint);
@@ -815,6 +855,7 @@ function makeCard(g, idx) {
   const plats  = (g.platforms||[]).slice(0,3).map(p=>`<span class="cpb">${platShort(p.platform.name)}</span>`).join('');
   const isNew  = g.released && (Date.now() - new Date(g.released)) < 90*864e5;
   const isGreat = sc >= 88;
+  const esrb   = g.esrb_rating?.name || '';
   const div = document.createElement('div');
   div.className = 'game-card';
   if (isGreat) div.setAttribute('data-great','');
@@ -825,6 +866,7 @@ function makeCard(g, idx) {
       <div class="thumb-shine"></div>
       ${sc ? `<div class="card-score" style="background:${scc}22;border:1px solid ${scc}44;color:${scc};">${sc}<small>${scl}</small></div>` : ''}
       ${isNew ? '<div class="card-new">NEW</div>' : ''}
+      ${esrb ? `<div class="card-esrb">${esrbImg(esrb)}</div>` : ''}
       <div class="card-plats">${plats}</div>
     </div>
     <div class="card-body">
@@ -965,7 +1007,7 @@ async function openModal(g) {
     renderScoreBreakdown(det);
 
     // Outlet reviews
-    renderOutlets(det.metacritic);
+    renderOutlets(det.metacritic, det.name);
 
     // Screenshots
     if (shots.results?.length) {
@@ -981,93 +1023,51 @@ async function openModal(g) {
   }
 }
 
-/* ──────────────── SCORE BREAKDOWN ──────────────── */
+/* ──────────────── SCORE BREAKDOWN (real RAWG user ratings) ──────────────── */
 function renderScoreBreakdown(det) {
-  const sc = det.metacritic, scc = scC(sc);
   const ratings = det.ratings || [];
   const getR = t => ratings.find(r => r.title === t) || { count:0, percent:0 };
   const exc = getR('exceptional'), rec = getR('recommended'), meh = getR('meh'), skip = getR('skip');
-  const uRat = det.rating || 0;
-  const C = 2 * Math.PI * 36;
-
-  const posP = sc ? Math.min(100, sc + (uRat-3)*3) : 0;
-  const negP = sc ? Math.max(0, 100-sc-20) : 0;
-  const mixP = Math.max(0, 100-posP-negP);
-  const uP   = uRat * 20;
-
+  const total = (exc.count||0)+(rec.count||0)+(meh.count||0)+(skip.count||0);
+  if (!total) { document.getElementById('scoreBd').innerHTML = ''; return; }
   document.getElementById('scoreBd').innerHTML = `
-    <div class="sbd-title">SCORE BREAKDOWN</div>
-    <div class="sbd-top">
-      <div class="sbd-circle">
-        <svg width="90" height="90" viewBox="0 0 90 90">
-          <circle class="circ-bg" cx="45" cy="45" r="36"/>
-          <circle class="circ-fg" id="circFg" cx="45" cy="45" r="36"
-            stroke="${scc}" stroke-dasharray="${C}" stroke-dashoffset="${C}"/>
-        </svg>
-        <div class="circ-txt">
-          <div class="circ-num" id="circNum" style="color:${scc}">0</div>
-          <div class="circ-lbl">SCORE</div>
-        </div>
-      </div>
-      <div class="sbd-bars">
-        <div class="bar-row"><div class="bar-lbl" style="color:var(--green)">Positive</div><div class="bar-track"><div class="bar-fill" id="bPos" style="background:var(--green)"></div></div><div class="bar-val" id="vPos"></div></div>
-        <div class="bar-row"><div class="bar-lbl" style="color:var(--gold)">Mixed</div><div class="bar-track"><div class="bar-fill" id="bMix" style="background:var(--gold)"></div></div><div class="bar-val" id="vMix"></div></div>
-        <div class="bar-row"><div class="bar-lbl" style="color:var(--a2)">Negative</div><div class="bar-track"><div class="bar-fill" id="bNeg" style="background:var(--a2)"></div></div><div class="bar-val" id="vNeg"></div></div>
-        <div class="bar-row"><div class="bar-lbl" style="color:var(--a)">User Score</div><div class="bar-track"><div class="bar-fill" id="bUsr" style="background:var(--a)"></div></div><div class="bar-val" style="color:var(--a)" id="vUsr"></div></div>
-      </div>
+    <div class="sbd-title">USER RATING BREAKDOWN
+      <span style="font-size:.5rem;color:var(--mut2);font-weight:400;margin-left:.5rem;">${total.toLocaleString()} total ratings · source: RAWG</span>
     </div>
     <div class="sbd-cats">
-      <div class="scat"><span class="scat-ico">🏆</span><div class="scat-pct" style="color:var(--green)">${Math.round(exc.percent||0)}%</div><div class="scat-lbl">Exceptional</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${exc.count||0} users</div></div>
-      <div class="scat"><span class="scat-ico">👍</span><div class="scat-pct" style="color:#78d900">${Math.round(rec.percent||0)}%</div><div class="scat-lbl">Recommended</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${rec.count||0} users</div></div>
-      <div class="scat"><span class="scat-ico">😐</span><div class="scat-pct" style="color:var(--gold)">${Math.round(meh.percent||0)}%</div><div class="scat-lbl">Meh</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${meh.count||0} users</div></div>
-      <div class="scat"><span class="scat-ico">👎</span><div class="scat-pct" style="color:var(--a2)">${Math.round(skip.percent||0)}%</div><div class="scat-lbl">Skip</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${skip.count||0} users</div></div> 
+      <div class="scat"><span class="scat-ico">🏆</span><div class="scat-pct" style="color:var(--green)">${Math.round(exc.percent||0)}%</div><div class="scat-lbl">Exceptional</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${(exc.count||0).toLocaleString()} users</div></div>
+      <div class="scat"><span class="scat-ico">👍</span><div class="scat-pct" style="color:#78d900">${Math.round(rec.percent||0)}%</div><div class="scat-lbl">Recommended</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${(rec.count||0).toLocaleString()} users</div></div>
+      <div class="scat"><span class="scat-ico">😐</span><div class="scat-pct" style="color:var(--gold)">${Math.round(meh.percent||0)}%</div><div class="scat-lbl">Meh</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${(meh.count||0).toLocaleString()} users</div></div>
+      <div class="scat"><span class="scat-ico">👎</span><div class="scat-pct" style="color:var(--a2)">${Math.round(skip.percent||0)}%</div><div class="scat-lbl">Skip</div><div style="font-size:.55rem;color:var(--mut2);font-family:'Space Mono',monospace;margin-top:2px;">${(skip.count||0).toLocaleString()} users</div></div>
     </div>
   `;
-
-  requestAnimationFrame(() => {
-    const fg = document.getElementById('circFg');
-    if (fg && sc) fg.style.strokeDashoffset = C - (sc/100)*C;
-    animCounter(document.getElementById('circNum'), 0, sc||0, 950);
-    setTimeout(() => {
-      setBar('bPos','vPos', posP, `${Math.round(posP)}%`);
-      setBar('bMix','vMix', mixP, `${Math.round(mixP)}%`);
-      setBar('bNeg','vNeg', negP, `${Math.round(negP)}%`);
-      setBar('bUsr','vUsr', uP,   uRat.toFixed(1));
-    }, 120);
-  });
 }
 
-/* ──────────────── OUTLET REVIEWS ──────────────── */
-function renderOutlets(sc) {
-  if (!sc) { document.getElementById('outletList').innerHTML = '<div style="font-family:Space Mono,monospace;font-size:.68rem;color:var(--mut2);text-align:center;padding:1.5rem;">No critic score available</div>'; return; }
-  const count = sc >= 85 ? 8 : sc >= 70 ? 6 : sc >= 55 ? 4 : 3;
-  const outlets = OUTLETS.slice(0, count);
-  document.getElementById('outletList').innerHTML = outlets.map((o, i) => {
-    const variance = [-5,-3,-2,-1,0,0,1,2,3,4,6];
-    const adj = variance[(i*3 + Math.floor(sc/10)) % variance.length];
-    const osc = Math.min(100, Math.max(40, sc + adj));
-    const oscc = scC(osc);
-    // Display score in outlet's own format
-    let disp;
-    if (o.name==='IGN')         disp = `${(osc/10).toFixed(1)}/10`;
-    else if (o.name==='Eurogamer') disp = osc>=90?'5/5':osc>=75?'4/5':osc>=60?'3/5':'2/5';
-    else if (o.name==='OpenCritic') disp = String(osc);
-    else if (o.name==='PC Gamer') disp = `${osc}/100`;
-    else if (o.name==='GameSpot') disp = `${Math.round(osc/10)}/10`;
-    else                          disp = `${osc}/100`;
-    // Pick quote based on score tier
-    const qi = osc>=90?0:osc>=75?1:osc>=60?2:osc>=50?3:4;
-    return `
-      <div class="outlet-row" style="animation-delay:${i*0.07}s">
-        <div class="outlet-icon" style="background:${o.bg};color:${o.color};border:1px solid ${o.color}44;">${o.abbr}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="outlet-name">${o.name}</div>
-          <div class="outlet-quote">"${o.quotes[qi]}"</div>
-        </div>
-        <div class="outlet-score" style="color:${oscc}">${disp}</div>
+/* ──────────────── CRITIC REVIEWS (real Metacritic link) ──────────────── */
+function renderOutlets(sc, gameName) {
+  const el = document.getElementById('outletList');
+  if (!sc || !gameName) {
+    el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:.68rem;color:var(--mut2);text-align:center;padding:1.5rem;">No Metacritic score available</div>';
+    return;
+  }
+  const slug = gameName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const mcUrl = `https://www.metacritic.com/game/${slug}/`;
+  const scc = scC(sc);
+  el.innerHTML = `
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-bottom:.4rem;">METACRITIC SCORE</div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:3rem;line-height:1;color:${scc};">${sc}</div>
+        <div style="font-size:.72rem;color:var(--mut2);margin-top:.3rem;">Based on professional critic reviews</div>
       </div>
-    `;
-  }).join('');
+      <a href="${mcUrl}" target="_blank" rel="noopener"
+        style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:2px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--a);padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;white-space:nowrap;"
+        onmouseover="this.style.background='var(--a)';this.style.color='var(--bg)'"
+        onmouseout="this.style.background='rgba(0,229,255,0.08)';this.style.color='var(--a)'">
+        READ REAL REVIEWS ON METACRITIC →
+      </a>
+    </div>
+  `;
 }
 
 /* ──────────────── MODAL CLOSE ──────────────── */
